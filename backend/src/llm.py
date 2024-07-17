@@ -58,9 +58,12 @@ def get_llm(model_version: str):
                          top_p=0.7,
                          temperature=0.95)
     elif "qwen" in MODEL_VERSIONS[model_version]:
-        llm = ChatTongyi(
-            model=model_name
-        )
+        llm = ChatOpenAI(api_key=os.environ.get('QWEN_API_KEY'),
+                         base_url=os.environ.get('QWEN_API_URL'),
+                         model=model_name,
+                         top_p=0.7,
+                         temperature=0.95
+                         )
     elif "Doubao" in MODEL_VERSIONS[model_version]:
         llm = ChatOpenAI(api_key=os.environ.get('DOUBAO_API_KEY'),
                          base_url=os.environ.get('DOUBAO_API_URL'),
