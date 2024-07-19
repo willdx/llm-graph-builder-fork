@@ -105,6 +105,10 @@ yarn run dev
 ```yaml
 OPENAI_API_KEY = ""
 
+#本地ollama
+OLLAMA_API_KEY = "ollama"
+OLLAMA_API_URL = "http://localhost:11434/v1/"
+
 #智普ai
 ZHIPUAI_API_KEY = "填写你的api key"
 ZHIPUAI_API_URL = "https://open.bigmodel.cn/api/paas/v4/"

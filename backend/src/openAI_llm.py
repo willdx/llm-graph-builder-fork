@@ -21,7 +21,7 @@ def get_graph_from_OpenAI(model_version, graph, chunkId_chunkDoc_list, allowedNo
 
     llm, model_name = get_llm(model_version)
     use_function_call = True
-    if (model_name.startswith("ollama")
+    if (model_version.startswith("Ollama")
             or model_name.startswith("Baichuan")
             or model_name.startswith("moonshot")
             or model_name.startswith("deepseek")

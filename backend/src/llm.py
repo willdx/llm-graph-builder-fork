@@ -27,12 +27,20 @@ def get_llm(model_version: str):
     env_value = os.environ.get(env_key)
     logging.info("Model: {}".format(env_key))
     model_name = MODEL_VERSIONS[model_version]
-    if "glm" in MODEL_VERSIONS[model_version]:
+    if "Ollama" in model_version:
+        # model_name, base_url = env_value.split(",")
+        llm = ChatOpenAI(api_key=os.environ.get('OLLAMA_API_KEY'),
+                         base_url=os.environ.get('OLLAMA_API_URL'),
+                         model=model_name,
+                         # top_p=0.7,
+                         temperature=0.98)
+    elif "glm" in MODEL_VERSIONS[model_version]:
         llm = ChatOpenAI(api_key=os.environ.get('ZHIPUAI_API_KEY'),
                          base_url=os.environ.get('ZHIPUAI_API_URL'),
                          model=model_name,
                          # top_p=0.7,
                          temperature=0.98)
+
     elif "moonshot" in MODEL_VERSIONS[model_version]:
         llm = ChatOpenAI(api_key=os.environ.get('MOONSHOT_API_KEY'),
                          base_url=os.environ.get('MOONSHOT_API_URL'),
@@ -134,10 +142,6 @@ def get_llm(model_version: str):
         llm = ChatBedrock(
             client=bedrock_client, model_id=model_name, model_kwargs=dict(temperature=0)
         )
-
-    elif "ollama" in model_version:
-        model_name, base_url = env_value.split(",")
-        llm = ChatOllama(base_url=base_url, model=model_name)
 
     else:
         model_name = "diffbot"
