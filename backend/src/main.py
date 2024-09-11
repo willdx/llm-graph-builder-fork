@@ -706,6 +706,48 @@ def upload_file(
     return f"Chunk {chunk_number}/{total_chunks} saved"
 
 
+def create_source_node_from_content(graph, model, file_content, file_name):
+    success_count = 0
+    failed_count = 0
+    lst_file_name = []
+
+    obj_source_node = sourceNode()
+    obj_source_node.status = "New"
+    obj_source_node.file_name = file_name
+    obj_source_node.file_type = "MD"
+    obj_source_node.file_source = "content"
+    obj_source_node.total_pages = 1
+    obj_source_node.model = model
+
+    obj_source_node.created_at = datetime.now()
+    obj_source_node.file_size = sys.getsizeof(file_content)
+    obj_source_node.content = file_content
+
+    try:
+        graphDb_data_Access = graphDBdataAccess(graph)
+        graphDb_data_Access.create_source_node(obj_source_node)
+        success_count += 1
+        lst_file_name.append(
+            {
+                "fileName": obj_source_node.file_name,
+                "fileSize": obj_source_node.file_size,
+                "status": "Success",
+            }
+        )
+    except Exception as e:
+        failed_count += 1
+        lst_file_name.append(
+            {
+                "fileName": obj_source_node.file_name,
+                "fileSize": obj_source_node.file_size,
+                "status": "Failed",
+            }
+        )
+        logging.error(f"Error creating source node: {str(e)}")
+
+    return lst_file_name, success_count, failed_count
+
+
 def get_labels_and_relationtypes(graph):
     query = """
           RETURN collect { 

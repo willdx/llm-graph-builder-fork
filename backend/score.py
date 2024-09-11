@@ -671,6 +671,52 @@ async def upload_large_file_into_chunks(
             close_db_connection(graph, "upload")
 
 
+@app.post("/create_document_node")
+async def create_document_node(
+    file_content: str = Form(...),
+    file_name: str = Form(...),
+    model: str = Form(...),
+    uri: str = Form(...),
+    userName: str = Form(...),
+    password: str = Form(...),
+    database: str = Form(...),
+):
+    try:
+        graph = create_graph_database_connection(uri, userName, password, database)
+        lst_file_name, success_count, failed_count = await asyncio.to_thread(
+            create_source_node_from_content, graph, model, file_content, file_name
+        )
+        josn_obj = {
+            "api_name": "upload_content",
+            "db_url": uri,
+            "logging_time": formatted_time(datetime.now(timezone.utc)),
+        }
+        logger.log_struct(josn_obj)
+        result = {
+            "fileName": file_name,
+            "success_count": success_count,
+            "failed_count": failed_count,
+            "file_list": lst_file_name,
+        }
+        return create_api_response(
+            "Success", data=result, message="Source Node Created Successfully"
+        )
+    except Exception as e:
+        message = "Unable to process content. "
+        error_message = str(e)
+        logging.exception(f"Exception:{error_message}")
+        return create_api_response(
+            "Failed",
+            message=message + error_message[:100],
+            error=error_message,
+            file_name=file_name,
+        )
+    finally:
+        gc.collect()
+        if graph is not None:
+            close_db_connection(graph, "upload_content")
+
+
 @app.post("/schema")
 async def get_structured_schema(
     uri=Form(None), userName=Form(None), password=Form(None), database=Form(None)
