@@ -26,3 +26,4 @@ class sourceNode:
     processed_chunk: int = None
     access_token: str = None
     content: str = None
+    unique_id: str = None

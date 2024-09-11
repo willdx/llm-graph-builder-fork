@@ -46,3 +46,18 @@ class CreateChunksofDocument:
         else:
             chunks = text_splitter.split_documents(self.pages)
         return chunks
+
+    def split_content_into_chunks(self, content: str):
+        """
+        将单个内容拆分成多个chunks
+
+        Args:
+            content: 要拆分的内容字符串
+
+        Returns:
+            一个包含多个Document对象的列表,每个对象代表一个chunk
+        """
+        logging.info("将内容拆分成更小的chunks")
+        text_splitter = TokenTextSplitter(chunk_size=200, chunk_overlap=20)
+        chunks = text_splitter.split_text(content)
+        return [Document(page_content=chunk) for chunk in chunks]

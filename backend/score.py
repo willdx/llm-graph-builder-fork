@@ -203,6 +203,7 @@ async def extract_knowledge_graph_from_file(
     allowedRelationship=Form(None),
     language=Form(None),
     access_token=Form(None),
+    unique_id=Form(None),
 ):
     """
     Calls 'extract_graph_from_file' in a new thread to create Neo4jGraph from a
@@ -221,7 +222,16 @@ async def extract_knowledge_graph_from_file(
     try:
         graph = create_graph_database_connection(uri, userName, password, database)
         graphDb_data_Access = graphDBdataAccess(graph)
-        if source_type == "local file":
+        if source_type == "db_content":
+            result = await asyncio.to_thread(
+                processing_source_from_db_content,
+                graph,
+                model,
+                unique_id,
+                allowedNodes,
+                allowedRelationship,
+            )
+        elif source_type == "local file":
             merged_file_path = os.path.join(MERGED_DIR, file_name)
             logging.info(f"File path:{merged_file_path}")
             result = await asyncio.to_thread(

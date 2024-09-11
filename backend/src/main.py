@@ -532,6 +532,109 @@ def processing_source(
         logging.info("File does not process because it's already in Processing status")
 
 
+def processing_source_from_db_content(
+    graph, model, unique_id, allowedNodes, allowedRelationship
+):
+    """参考processing_source函数, 自定义从neo4j获取Document, 使用Document.content作为数据源并创建知识图谱"""
+    start_time = datetime.now()
+    graphDb_data_Access = graphDBdataAccess(graph)
+
+    doc = graphDb_data_Access.get_document(unique_id)
+    content = doc.get("content")
+    if content is None:
+        raise Exception(f"No content found for unique_id: {unique_id}")
+    file_name = doc.get("fileName")
+
+    create_chunks_obj = CreateChunksofDocument([], graph)
+    chunks = create_chunks_obj.split_content_into_chunks(content)
+    chunkId_chunkDoc_list = create_relation_between_chunks(graph, file_name, chunks)
+    if doc.get("status") != "Processing":
+        obj_source_node = sourceNode()
+        status = "Processing"
+        obj_source_node.file_name = file_name
+        obj_source_node.status = status
+        obj_source_node.total_chunks = len(chunks)
+        obj_source_node.total_pages = 1
+        obj_source_node.model = model
+        logging.info(file_name)
+        logging.info(obj_source_node)
+        graphDb_data_Access.update_source_node(obj_source_node)
+
+        logging.info("Update the status as Processing")
+        update_graph_chunk_processed = int(
+            os.environ.get("UPDATE_GRAPH_CHUNKS_PROCESSED")
+        )
+        # selected_chunks = []
+        is_cancelled_status = False
+        job_status = "Completed"
+        node_count = 0
+        rel_count = 0
+        for i in range(0, len(chunkId_chunkDoc_list), update_graph_chunk_processed):
+            select_chunks_upto = i + update_graph_chunk_processed
+            logging.info(f"Selected Chunks upto: {select_chunks_upto}")
+            if len(chunkId_chunkDoc_list) <= select_chunks_upto:
+                select_chunks_upto = len(chunkId_chunkDoc_list)
+            selected_chunks = chunkId_chunkDoc_list[i:select_chunks_upto]
+            result = graphDb_data_Access.get_current_status_document_node(file_name)
+            is_cancelled_status = result[0]["is_cancelled"]
+            logging.info(f"Value of is_cancelled : {result[0]['is_cancelled']}")
+            if bool(is_cancelled_status) == True:
+                job_status = "Cancelled"
+                logging.info("Exit from running loop of processing file")
+                exit
+            else:
+                node_count, rel_count = processing_chunks(
+                    selected_chunks,
+                    graph,
+                    file_name,
+                    model,
+                    allowedNodes,
+                    allowedRelationship,
+                    node_count,
+                    rel_count,
+                )
+                end_time = datetime.now()
+                processed_time = end_time - start_time
+
+                obj_source_node = sourceNode()
+                obj_source_node.file_name = file_name
+                obj_source_node.updated_at = end_time
+                obj_source_node.processing_time = processed_time
+                obj_source_node.node_count = node_count
+                obj_source_node.processed_chunk = select_chunks_upto
+                obj_source_node.relationship_count = rel_count
+                graphDb_data_Access.update_source_node(obj_source_node)
+
+        result = graphDb_data_Access.get_current_status_document_node(file_name)
+        is_cancelled_status = result[0]["is_cancelled"]
+        if bool(is_cancelled_status) == True:
+            logging.info(f"Is_cancelled True at the end extraction")
+            job_status = "Cancelled"
+        logging.info(f"Job Status at the end : {job_status}")
+        end_time = datetime.now()
+        processed_time = end_time - start_time
+        obj_source_node = sourceNode()
+        obj_source_node.file_name = file_name
+        obj_source_node.status = job_status
+        obj_source_node.processing_time = processed_time
+
+        graphDb_data_Access.update_source_node(obj_source_node)
+        logging.info("Updated the nodeCount and relCount properties in Document node")
+        logging.info(f"file:{file_name} extraction has been completed")
+
+        return {
+            "fileName": file_name,
+            "nodeCount": node_count,
+            "relationshipCount": rel_count,
+            "processingTime": round(processed_time.total_seconds(), 2),
+            "status": job_status,
+            "model": model,
+            "success_count": 1,
+        }
+    else:
+        logging.info("File does not process because it's already in Processing status")
+
+
 def processing_chunks(
     chunkId_chunkDoc_list,
     graph,
@@ -715,7 +818,7 @@ def create_source_node_from_content(graph, model, file_content, file_name):
     obj_source_node.status = "New"
     obj_source_node.file_name = file_name
     obj_source_node.file_type = "MD"
-    obj_source_node.file_source = "content"
+    obj_source_node.file_source = "db_content"
     obj_source_node.total_pages = 1
     obj_source_node.model = model
 

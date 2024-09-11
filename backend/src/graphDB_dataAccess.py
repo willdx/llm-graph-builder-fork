@@ -1,6 +1,7 @@
 import logging
 import os
 from datetime import datetime
+import uuid
 from langchain_community.graphs import Neo4jGraph
 from src.shared.common_fn import (
     create_gcs_bucket_folder_name_hashed,
@@ -16,6 +17,27 @@ class graphDBdataAccess:
 
     def __init__(self, graph: Neo4jGraph):
         self.graph = graph
+
+    def get_document(self, unique_id):
+        try:
+            query = """
+            MATCH (d:Document {unique_id: $unique_id})
+            RETURN d
+            """
+            params = {"unique_id": unique_id}
+            logging.info(f"Executing query for unique_id: {unique_id}")
+            result = self.graph.query(query, params)
+
+            if result:
+                logging.info(f"Document found for unique_id: {unique_id}")
+                return result[0]["d"]
+            else:
+                logging.warning(f"No document found for unique_id: {unique_id}")
+                return None
+        except Exception as e:
+            error_message = str(e)
+            logging.error(f"Error in getting document by unique_id: {error_message}")
+            raise Exception(error_message)
 
     def update_exception_db(self, file_name, exp_msg):
         try:
@@ -36,11 +58,17 @@ class graphDBdataAccess:
             raise Exception(error_message)
 
     def create_source_node(self, obj_source_node: sourceNode):
+        if (
+            not hasattr(obj_source_node, "unique_id")
+            or obj_source_node.unique_id is None
+        ):
+            setattr(obj_source_node, "unique_id", str(uuid.uuid4()))
+
         try:
             job_status = "New"
             logging.info("creating source node if does not exist")
             self.graph.query(
-                """MERGE(d:Document {fileName :$fn}) SET d.fileSize = $fs, d.fileType = $ft ,
+                """MERGE(d:Document {fileName :$fn}) SET d.content = $content, d.unique_id = $unique_id, d.fileSize = $fs, d.fileType = $ft ,
                             d.status = $st, d.url = $url, d.awsAccessKeyId = $awsacc_key_id, 
                             d.fileSource = $f_source, d.createdAt = $c_at, d.updatedAt = $u_at, 
                             d.processingTime = $pt, d.errorMessage = $e_message, d.nodeCount= $n_count, 
@@ -69,6 +97,8 @@ class graphDBdataAccess:
                     "gcs_project_id": obj_source_node.gcsProjectId,
                     "total_pages": obj_source_node.total_pages,
                     "access_token": obj_source_node.access_token,
+                    "unique_id": obj_source_node.unique_id,
+                    "content": obj_source_node.content or "",
                 },
             )
         except Exception as e:
@@ -151,7 +181,7 @@ class graphDBdataAccess:
             self.graph.query(query, param)
         except Exception as e:
             error_message = str(e)
-            self.update_exception_db(self.file_name, error_message)
+            # self.update_exception_db(self.file_name, error_message)
             raise Exception(error_message)
 
     def get_source_list(self):
