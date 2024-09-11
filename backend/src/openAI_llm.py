@@ -10,10 +10,12 @@ from langchain_experimental.graph_transformers import LLMGraphTransformer
 from src.llm import get_graph_document_list, get_combined_chunks, get_llm
 
 load_dotenv()
-logging.basicConfig(format='%(asctime)s - %(message)s', level='INFO')
+logging.basicConfig(format="%(asctime)s - %(message)s", level="INFO")
 
 
-def get_graph_from_OpenAI(model_version, graph, chunkId_chunkDoc_list, allowedNodes, allowedRelationship):
+def get_graph_from_OpenAI(
+    model_version, graph, chunkId_chunkDoc_list, allowedNodes, allowedRelationship
+):
     futures = []
     graph_document_list = []
 
@@ -21,15 +23,22 @@ def get_graph_from_OpenAI(model_version, graph, chunkId_chunkDoc_list, allowedNo
 
     llm, model_name = get_llm(model_version)
     use_function_call = True
-    if (model_version.startswith("Ollama")
-            or model_name.startswith("Baichuan")
-            or model_name.startswith("moonshot")
-            or model_name.startswith("deepseek")
-            or model_name.startswith("yi-large")
-            or model_name.startswith("qwen")
-            or model_name.startswith("Doubao")):
+    if (
+        model_version.startswith("Ollama")
+        or model_name.startswith("Baichuan")
+        or model_name.startswith("moonshot")
+        or model_name.startswith("deepseek")
+        or model_name.startswith("yi-large")
+        or model_name.startswith("qwen")
+        or model_name.startswith("Doubao")
+    ):
 
         use_function_call = False
 
-    return get_graph_document_list(llm, combined_chunk_document_list, allowedNodes, allowedRelationship,
-                                   use_function_call)
+    return get_graph_document_list(
+        llm,
+        combined_chunk_document_list,
+        allowedNodes,
+        allowedRelationship,
+        use_function_call,
+    )

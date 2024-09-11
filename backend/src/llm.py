@@ -8,6 +8,7 @@ from langchain_google_vertexai import HarmBlockThreshold, HarmCategory
 from langchain_experimental.graph_transformers.diffbot import DiffbotGraphTransformer
 import concurrent.futures
 from concurrent.futures import ThreadPoolExecutor
+
 # from langchain_experimental.graph_transformers import LLMGraphTransformer
 from langchain_anthropic import ChatAnthropic
 from langchain_fireworks import ChatFireworks
@@ -29,56 +30,70 @@ def get_llm(model_version: str):
     model_name = MODEL_VERSIONS[model_version]
     if "Ollama" in model_version:
         # model_name, base_url = env_value.split(",")
-        llm = ChatOpenAI(api_key=os.environ.get('OLLAMA_API_KEY'),
-                         base_url=os.environ.get('OLLAMA_API_URL'),
-                         model=model_name,
-                         # top_p=0.7,
-                         temperature=0.98)
+        llm = ChatOpenAI(
+            api_key=os.environ.get("OLLAMA_API_KEY"),
+            base_url=os.environ.get("OLLAMA_API_URL"),
+            model=model_name,
+            # top_p=0.7,
+            temperature=0.98,
+        )
     elif "glm" in MODEL_VERSIONS[model_version]:
-        llm = ChatOpenAI(api_key=os.environ.get('ZHIPUAI_API_KEY'),
-                         base_url=os.environ.get('ZHIPUAI_API_URL'),
-                         model=model_name,
-                         # top_p=0.7,
-                         temperature=0.98)
+        llm = ChatOpenAI(
+            api_key=os.environ.get("ZHIPUAI_API_KEY"),
+            base_url=os.environ.get("ZHIPUAI_API_URL"),
+            model=model_name,
+            # top_p=0.7,
+            temperature=0.98,
+        )
 
     elif "moonshot" in MODEL_VERSIONS[model_version]:
-        llm = ChatOpenAI(api_key=os.environ.get('MOONSHOT_API_KEY'),
-                         base_url=os.environ.get('MOONSHOT_API_URL'),
-                         model=model_name,
-                         top_p=0.7,
-                         temperature=0.95)
+        llm = ChatOpenAI(
+            api_key=os.environ.get("MOONSHOT_API_KEY"),
+            base_url=os.environ.get("MOONSHOT_API_URL"),
+            model=model_name,
+            top_p=0.7,
+            temperature=0.95,
+        )
     elif "Baichuan" in MODEL_VERSIONS[model_version]:
-        llm = ChatOpenAI(api_key=os.environ.get('BAICHUAN_API_KEY'),
-                         base_url=os.environ.get('BAICHUAN_API_URL'),
-                         model=model_name,
-                         # top_p=0.7,
-                         temperature=0.95)
+        llm = ChatOpenAI(
+            api_key=os.environ.get("BAICHUAN_API_KEY"),
+            base_url=os.environ.get("BAICHUAN_API_URL"),
+            model=model_name,
+            # top_p=0.7,
+            temperature=0.95,
+        )
     elif "yi-large" in MODEL_VERSIONS[model_version]:
-        llm = ChatOpenAI(api_key=os.environ.get('LINGYIWANWU_API_KEY'),
-                         base_url=os.environ.get('LINGYIWANWU_API_URL'),
-                         model=model_name,
-                         top_p=0.7,
-                         temperature=0.95)
+        llm = ChatOpenAI(
+            api_key=os.environ.get("LINGYIWANWU_API_KEY"),
+            base_url=os.environ.get("LINGYIWANWU_API_URL"),
+            model=model_name,
+            top_p=0.7,
+            temperature=0.95,
+        )
     elif "deepseek" in MODEL_VERSIONS[model_version]:
-        llm = ChatOpenAI(api_key=os.environ.get('DEEPSEEK_API_KEY'),
-                         base_url=os.environ.get('DEEPSEEK_API_URL'),
-                         model=model_name,
-                         top_p=0.7,
-                         temperature=0.95)
+        llm = ChatOpenAI(
+            api_key=os.environ.get("DEEPSEEK_API_KEY"),
+            base_url=os.environ.get("DEEPSEEK_API_URL"),
+            model=model_name,
+            top_p=0.7,
+            temperature=0.95,
+        )
     elif "qwen" in MODEL_VERSIONS[model_version]:
-        llm = ChatOpenAI(api_key=os.environ.get('QWEN_API_KEY'),
-                         base_url=os.environ.get('QWEN_API_URL'),
-                         model=model_name,
-                         top_p=0.7,
-                         temperature=0.95
-                         )
+        llm = ChatOpenAI(
+            api_key=os.environ.get("QWEN_API_KEY"),
+            base_url=os.environ.get("QWEN_API_URL"),
+            model=model_name,
+            top_p=0.7,
+            temperature=0.95,
+        )
     elif "Doubao" in MODEL_VERSIONS[model_version]:
-        llm = ChatOpenAI(api_key=os.environ.get('DOUBAO_API_KEY'),
-                         base_url=os.environ.get('DOUBAO_API_URL'),
-                         model=os.environ.get('ENDPOINT_ID'),
-                         # top_p=0.7,
-                         # temperature=0.95
-                         )
+        llm = ChatOpenAI(
+            api_key=os.environ.get("DOUBAO_API_KEY"),
+            base_url=os.environ.get("DOUBAO_API_URL"),
+            model=os.environ.get("ENDPOINT_ID"),
+            # top_p=0.7,
+            # temperature=0.95
+        )
     elif "gemini" in model_version:
         credentials, project_id = google.auth.default()
         model_name = MODEL_VERSIONS[model_version]
@@ -160,14 +175,14 @@ def get_combined_chunks(chunkId_chunkDoc_list):
     combined_chunks_page_content = [
         "".join(
             document["chunk_doc"].page_content
-            for document in chunkId_chunkDoc_list[i: i + chunks_to_combine]
+            for document in chunkId_chunkDoc_list[i : i + chunks_to_combine]
         )
         for i in range(0, len(chunkId_chunkDoc_list), chunks_to_combine)
     ]
     combined_chunks_ids = [
         [
             document["chunk_id"]
-            for document in chunkId_chunkDoc_list[i: i + chunks_to_combine]
+            for document in chunkId_chunkDoc_list[i : i + chunks_to_combine]
         ]
         for i in range(0, len(chunkId_chunkDoc_list), chunks_to_combine)
     ]
@@ -183,7 +198,11 @@ def get_combined_chunks(chunkId_chunkDoc_list):
 
 
 def get_graph_document_list(
-        llm, combined_chunk_document_list, allowedNodes, allowedRelationship, use_function=True
+    llm,
+    combined_chunk_document_list,
+    allowedNodes,
+    allowedRelationship,
+    use_function=True,
 ):
     futures = []
     graph_document_list = []
@@ -196,7 +215,7 @@ def get_graph_document_list(
         node_properties=node_properties,
         allowed_nodes=allowedNodes,
         allowed_relationships=allowedRelationship,
-        use_function_call=use_function
+        use_function_call=use_function,
     )
     with ThreadPoolExecutor(max_workers=10) as executor:
         for chunk in combined_chunk_document_list:

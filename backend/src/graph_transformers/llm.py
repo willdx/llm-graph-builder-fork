@@ -213,19 +213,25 @@ def create_unstructured_prompt(
         '"head_type", "relation", "tail", and "tail_type". The "head" '
         "key must contain the text of the extracted entity with one of the types "
         "from the provided list in the user prompt.",
-        f'The "head_type" key must contain the type of the extracted head entity, '
-        f"which must be one of the types from {node_labels_str}."
-        if node_labels
-        else "",
-        f'The "relation" key must contain the type of relation between the "head" '
-        f'and the "tail", which must be one of the relations from {rel_types_str}.'
-        if rel_types
-        else "",
-        f'The "tail" key must represent the text of an extracted entity which is '
-        f'the tail of the relation, and the "tail_type" key must contain the type '
-        f"of the tail entity from {node_labels_str}."
-        if node_labels
-        else "",
+        (
+            f'The "head_type" key must contain the type of the extracted head entity, '
+            f"which must be one of the types from {node_labels_str}."
+            if node_labels
+            else ""
+        ),
+        (
+            f'The "relation" key must contain the type of relation between the "head" '
+            f'and the "tail", which must be one of the relations from {rel_types_str}.'
+            if rel_types
+            else ""
+        ),
+        (
+            f'The "tail" key must represent the text of an extracted entity which is '
+            f'the tail of the relation, and the "tail_type" key must contain the type '
+            f"of the tail entity from {node_labels_str}."
+            if node_labels
+            else ""
+        ),
         "Attempt to extract as many entities and relations as you can. Maintain "
         "Entity Consistency: When extracting entities, it's vital to ensure "
         'consistency. If an entity, such as "John Doe", is mentioned multiple '
@@ -377,10 +383,10 @@ def map_to_base_relationship(rel: Any) -> Relationship:
 def _parse_and_clean_json(
     argument_json: Dict[str, Any],
 ) -> Tuple[List[Node], List[Relationship]]:
-    if 'Items' in argument_json["nodes"]:
-        argument_json["nodes"] = argument_json['nodes']['Items']
-    if 'Items' in argument_json["relationships"]:
-        argument_json["relationships"] = argument_json["relationships"]['Items']
+    if "Items" in argument_json["nodes"]:
+        argument_json["nodes"] = argument_json["nodes"]["Items"]
+    if "Items" in argument_json["relationships"]:
+        argument_json["relationships"] = argument_json["relationships"]["Items"]
     nodes = []
     for node in argument_json["nodes"]:
         if not node.get("id"):  # Id is mandatory, skip this node
@@ -551,7 +557,7 @@ class LLMGraphTransformer:
         prompt: Optional[ChatPromptTemplate] = None,
         strict_mode: bool = True,
         node_properties: Union[bool, List[str]] = False,
-        use_function_call: bool = True
+        use_function_call: bool = True,
     ) -> None:
         self.allowed_nodes = allowed_nodes
         self.allowed_relationships = allowed_relationships

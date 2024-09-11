@@ -47,4 +47,5 @@ class ChatRequest(BaseModel):
     tool_choice: Optional[Union[str, ToolChoice]] = None
     user: Optional[str] = None
 
+
 app = FastAPI()
