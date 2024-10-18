@@ -18,25 +18,25 @@ class graphDBdataAccess:
     def __init__(self, graph: Neo4jGraph):
         self.graph = graph
 
-    def get_document(self, unique_id):
+    def get_document(self, id):
         try:
             query = """
-            MATCH (d:Document {unique_id: $unique_id})
+            MATCH (d:Document {id: $id})
             RETURN d
             """
-            params = {"unique_id": unique_id}
-            logging.info(f"Executing query for unique_id: {unique_id}")
+            params = {"id": id}
+            logging.info(f"Executing query for id: {id}")
             result = self.graph.query(query, params)
 
             if result:
-                logging.info(f"Document found for unique_id: {unique_id}")
+                logging.info(f"Document found for id: {id}")
                 return result[0]["d"]
             else:
-                logging.warning(f"No document found for unique_id: {unique_id}")
+                logging.warning(f"No document found for id: {id}")
                 return None
         except Exception as e:
             error_message = str(e)
-            logging.error(f"Error in getting document by unique_id: {error_message}")
+            logging.error(f"Error in getting document by id: {error_message}")
             raise Exception(error_message)
 
     def update_exception_db(self, file_name, exp_msg):
@@ -59,16 +59,16 @@ class graphDBdataAccess:
 
     def create_source_node(self, obj_source_node: sourceNode):
         if (
-            not hasattr(obj_source_node, "unique_id")
-            or obj_source_node.unique_id is None
+            not hasattr(obj_source_node, "id")
+            or obj_source_node.id is None
         ):
-            setattr(obj_source_node, "unique_id", str(uuid.uuid4()))
+            setattr(obj_source_node, "id", str(uuid.uuid4()))
 
         try:
             job_status = "New"
             logging.info("creating source node if does not exist")
             self.graph.query(
-                """MERGE(d:Document {fileName :$fn}) SET d.content = $content, d.unique_id = $unique_id, d.fileSize = $fs, d.fileType = $ft ,
+                """MERGE(d:Document {fileName :$fn}) SET d.content = $content, d.id = $id, d.fileSize = $fs, d.fileType = $ft ,
                             d.status = $st, d.url = $url, d.awsAccessKeyId = $awsacc_key_id, 
                             d.fileSource = $f_source, d.createdAt = $c_at, d.updatedAt = $u_at, 
                             d.processingTime = $pt, d.errorMessage = $e_message, d.nodeCount= $n_count, 
@@ -97,7 +97,7 @@ class graphDBdataAccess:
                     "gcs_project_id": obj_source_node.gcsProjectId,
                     "total_pages": obj_source_node.total_pages,
                     "access_token": obj_source_node.access_token,
-                    "unique_id": obj_source_node.unique_id,
+                    "id": obj_source_node.id,
                     "content": obj_source_node.content or "",
                 },
             )
